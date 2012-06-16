@@ -1,0 +1,9 @@
+#Get your KEY and SECRET from http://developer.rdio.com/
+KEY = "" 
+SECRET = ""
+
+#usually your name, TitleCase, minus spaces... ie. BilboBaggins
+NAME = "" 
+
+#path to your music folder containing artist folders, ie. /Volumes/Music
+MUSIC_FOLDER = "" 
