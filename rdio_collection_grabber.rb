@@ -8,6 +8,11 @@
 # Now you can stop feeling like you're neglecting your REAL library!
 
 require 'rubygems'
+
+#make sure we look in the execution directory first for our requires (rdio and config)
+#that way we can call this script from anywhere, like cron, without issues
+$: << File.dirname(__FILE__)
+
 require 'rdio'
 
 begin
