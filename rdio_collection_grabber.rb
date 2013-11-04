@@ -43,11 +43,15 @@ rdio = Rdio.new([KEY,SECRET])
 
 user = rdio.call("findUser", {"vanityName" => NAME})
 
-user_key = user.result.key
+user_key = user.result["key"]
 
 latest_album_data = rdio.call("getAlbumsInCollection", {"user" => user_key, "count" => 20, "sort" => "dateAdded"})
 
 latest_albums = latest_album_data.result.map { |album| { "artist" => album.artist, "name" => album.name } }
+
+def strip_album_for_compare(str)
+	str.downcase.gsub(/ep|-/,'').gsub(/[ ]+$/,'')
+end
 
 #get the most recent albums added to our collection
 latest_albums.each do |album|
@@ -57,7 +61,8 @@ latest_albums.each do |album|
 	if have_artist
 		#check the filesystem to see if we have the album
 		album_folders = Dir.entries("#{MUSIC_FOLDER}/#{album.artist}")[2..-1] #we assume you have itunes-style folders
-		have_album = album_folders.map(&:downcase).include? album.name.downcase
+		stripped_album_name = strip_album_for_compare(album.name).gsub("/","_")
+		have_album = album_folders.map{|s| strip_album_for_compare(s) }.index{|s| s.include? stripped_album_name } != nil
 	end
 
 	is_va = album.artist == "Various Artists"
