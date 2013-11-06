@@ -49,8 +49,12 @@ latest_album_data = rdio.call("getAlbumsInCollection", {"user" => user_key, "cou
 
 latest_albums = latest_album_data.result.map { |album| { "artist" => album.artist, "name" => album.name } }
 
-def strip_album_for_compare(str)
-	str.downcase.gsub(/ep|-/,'').gsub(/[ ]+$/,'')
+def strip_album_name_extras!(str)
+	non_album_title_text = ['- ep', 'ep', '(deluxe edition)']
+	str.downcase!
+	non_album_title_text.each {|s| str.gsub!(s, '') }
+	str.strip!
+	str
 end
 
 #get the most recent albums added to our collection
@@ -58,20 +62,25 @@ latest_albums.each do |album|
 	artist_folder = "#{MUSIC_FOLDER}/#{album.artist}"
 	have_artist = File.directory? artist_folder
 
+	strip_album_name_extras!(album.name)
+
 	if have_artist
 		#check the filesystem to see if we have the album
 		album_folders = Dir.entries("#{MUSIC_FOLDER}/#{album.artist}")[2..-1] #we assume you have itunes-style folders
-		stripped_album_name = strip_album_for_compare(album.name).gsub("/","_")
-		have_album = album_folders.map{|s| strip_album_for_compare(s) }.index{|s| s.include? stripped_album_name } != nil
+		stripped_album_name = album.name.gsub("/","_")
+		have_album = album_folders.map do |s|
+			strip_album_name_extras!(s)
+		end.index do |s|
+			s.include? stripped_album_name
+		end != nil
 	end
 
 	is_va = album.artist == "Various Artists"
 
 	#if we don't have it and it's not some unpredictable VA album, try to download it
 	if !have_artist or (!have_album and !is_va)
-		puts "**** ATTEMPTING DOWNLOAD OF \"#{album.artist}\" \"#{album.name}\""
 		command = "#{whatcdsearch_location} -a \"#{album.artist}\" -l \"#{album.name}\""
-		puts "**** #{command}"
+		puts "#{Time.now.strftime("%m/%d/%Y %H:%M")} **** #{command}"
 		`#{command}`
 	end
 end
