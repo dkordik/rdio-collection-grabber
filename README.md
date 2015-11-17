@@ -5,15 +5,12 @@ and use the `whatcdsearch` script to download the goodies. (pass its path to thi
 So I can automagically keep my iTunes library up-to-date with my new Rdio finds.
 Now you can stop feeling like you're neglecting your REAL library!
 
-## Requires ##
-- Ruby, gems:
- - mechanize
-
 ## Setup ##
 
-1. Get my fork of whatcdsearch
+1. Run `bundle` to install required gems
 2. Go to http://developer.rdio.com/ and get an API key/secret.
 3. Rename `config.rb.example` to `config.rb` and fill it out!
+4. Get my fork of whatcdsearch
 
 ## Usage ##
 

@@ -13,7 +13,7 @@ require 'rubygems'
 #that way we can call this script from anywhere, like cron, without issues
 $: << File.dirname(__FILE__)
 
-require 'rdio'
+require 'rdioid'
 
 begin
 require 'config'
@@ -22,7 +22,7 @@ rescue Exception=>e
 	exit
 end
 
-if KEY.length == 0 or SECRET.length == 0 or NAME.length == 0 or MUSIC_FOLDER.length == 0
+if NAME.length == 0 or KEY.length == 0 or SECRET.length == 0 or MUSIC_FOLDER.length == 0
 	puts "Error: Make sure you've filled out your config.rb"
 end
 
@@ -39,13 +39,22 @@ class Hash #too addicted to JS-esque object notation. sorry rb-kids
   end
 end
 
-rdio = Rdio.new([KEY,SECRET])
+Rdioid.configure do |config|
+  config.client_id = KEY
+  config.client_secret = SECRET
+  config.redirect_uri = 'http://example.com/'
+end
 
-user = rdio.call("findUser", {"vanityName" => NAME})
+puts Rdioid::Client.authorization_url(:response_type => 'token')
+puts "Open this URL in your browser^, click Allow, then paste the URL it directs you to, here:"
 
-user_key = user.result["key"]
+access_token = STDIN.gets.strip.split("#")[1].split("&")[0].split("=")[1]
 
-latest_album_data = rdio.call("getAlbumsInCollection", {"user" => user_key, "count" => 20, "sort" => "dateAdded"})
+puts "Parsed token: #{access_token}"
+
+rdioid_client = Rdioid::Client.new
+
+latest_album_data = rdioid_client.api_request(access_token, :method => 'getAlbumsInCollection', :count => 100, :sort => "dateAdded")
 
 latest_albums = latest_album_data.result.map { |album| { "artist" => album.artist, "name" => album.name } }
 
@@ -59,6 +68,7 @@ end
 
 #get the most recent albums added to our collection
 latest_albums.each do |album|
+
 	artist_folder = "#{MUSIC_FOLDER}/#{album.artist}"
 	have_artist = File.directory? artist_folder
 
